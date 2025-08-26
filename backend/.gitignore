@@ -1,0 +1,76 @@
+# -----------------------------
+# Node / NPM
+# -----------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Keep your lockfile committed for reproducible installs
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# -----------------------------
+# Environment & local secrets
+# -----------------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------------
+# TypeScript build outputs
+# -----------------------------
+dist/
+build/
+*.tsbuildinfo
+
+# -----------------------------
+# Logs & coverage
+# -----------------------------
+logs/
+*.log
+*.log.*
+coverage/
+.nyc_output/
+.jest/
+jest-html-reporters-*/
+
+# -----------------------------
+# Editors / OS files
+# -----------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*.orig
+
+# -----------------------------
+# Prisma
+# -----------------------------
+# We commit migrations/ but ignore local SQLite artifacts if you ever try SQLite locally
+# (This project uses Postgres by default.)
+prisma/dev.db
+prisma/dev.db-journal
+*.db
+*.db-journal
+# DO NOT ignore prisma/migrations/
+# prisma/migrations/
+
+# -----------------------------
+# GraphQL codegen (if you add it later)
+# -----------------------------
+__generated__/
+graphql.schema.json
+package-lock.json
+
+# -----------------------------
+# Docker / local data
+# -----------------------------
+docker-data/
+tmp/
+temp/

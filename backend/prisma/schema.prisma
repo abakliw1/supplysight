@@ -1,0 +1,45 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Warehouse {
+    code        String      @id
+    name        String
+    city        String
+    country     String
+    inventories Inventory[]
+}
+
+model Product {
+    id          String      @id
+    name        String
+    sku         String      @unique
+    inventories Inventory[]
+}
+
+model Inventory {
+    // This row represents a product at a specific warehouse (matches your GraphQL Product shape)
+    id            String   @id @default(cuid())
+    productId     String
+    warehouseCode String
+    stock         Int
+    demand        Int
+    updatedAt     DateTime @updatedAt
+
+    product   Product   @relation(fields: [productId], references: [id])
+    warehouse Warehouse @relation(fields: [warehouseCode], references: [code])
+
+    @@unique([productId, warehouseCode])
+}
+
+model KpiSnapshot {
+    id     String   @id @default(cuid())
+    date   DateTime @unique
+    stock  Int
+    demand Int
+}
