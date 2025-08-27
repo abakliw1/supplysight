@@ -30,7 +30,8 @@ export default function DashboardRoute() {
     const {data: kpisData} = useQuery<KPIsQuery>(GET_KPIS, {variables: {range}});
     const {data: productsData, loading: productsLoading, refetch: productsRefetch} = useQuery<ProductsQuery,ProductsVars>(GET_PRODUCTS, {
         variables: {search: search || null, warehouse: warehouse || null, status: status || null, },
-        fetchPolicy: "cache-and-network",
+        fetchPolicy: "network-only",
+        nextFetchPolicy: "cache-first",
     });
 
     const [updateDemand, {loading: updatingDemand}] = useMutation(UPDATE_DEMAND, {onCompleted: () => productsRefetch()});
@@ -41,17 +42,17 @@ export default function DashboardRoute() {
     const asOfKpi = kpiSeries.length ? kpiSeries[kpiSeries.length - 1] : undefined;
 
     const totals = useMemo(() => {
-        if (asOfKpi) {
-            const stock = Number(asOfKpi.stock ?? 0);
-            const demand = Number(asOfKpi.demand ?? 0);
-            const fillRate = demand > 0 ? Math.round((Math.min(stock, demand) / demand) * 100) : 0;
-            return { stock, demand, fillRate };
-        }
         if (products.length > 0){
             const stock = products.reduce((s, r) => s + Number(r.stock ?? 0), 0);
             const demand = products.reduce((s, r) => s + Number(r.demand ?? 0), 0);
             const fillNum = products.reduce((s, r) => s + Math.min(Number(r.stock ?? 0), Number(r.demand ?? 0)), 0);
             const fillRate = demand > 0 ? Math.round((fillNum / demand) * 100) : 100;
+            return { stock, demand, fillRate };
+        }
+        if (asOfKpi) {
+            const stock = Number(asOfKpi.stock ?? 0);
+            const demand = Number(asOfKpi.demand ?? 0);
+            const fillRate = demand > 0 ? Math.round((Math.min(stock, demand) / demand) * 100) : 0;
             return { stock, demand, fillRate };
         }
         const last = kpiSeries[kpiSeries.length - 1];
@@ -62,7 +63,7 @@ export default function DashboardRoute() {
             return { stock, demand, fillRate };
         }
         return { stock: 0, demand: 0, fillRate: 0 };
-    }, [asOfKpi]);
+    }, [products,asOfKpi]);
     useEffect(() => {setPage(1);}, [search, warehouse, status]);
     useEffect(() => {
         // products query isn't time-based yet, but this keeps things in sync UI-wise

@@ -20,6 +20,19 @@ type GQLProduct = {
   demand: number;
 };
 
+function deduplicateByKey<T>(rows: T[], key: (x: T) => string) {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const r of rows) {
+    const k = key(r);
+    if (!seen.has(k)) {
+      seen.add(k);
+      out.push(r);
+    }
+  }
+  return out;
+}
+
 function toGQLProduct(inv: any & { product: any }): GQLProduct {
   return {
     id: inv.productId,
@@ -39,7 +52,10 @@ function statusOf(stock: number, demand: number) {
 
 const resolvers = {
   Query: {
-    warehouses: async () => prisma.warehouse.findMany(),
+    warehouses: async () => {
+      const whs = await prisma.warehouse.findMany();
+      return deduplicateByKey(whs, (w) => w.code);
+    },
     products: async (
       _: unknown,
       args: { search?: string; status?: string; warehouse?: string }
@@ -54,7 +70,10 @@ const resolvers = {
         orderBy: { updatedAt: "desc" },
       });
 
-      let rows = invs;
+      let rows = deduplicateByKey(
+        invs,
+        (r) => `${r.productId}:${r.warehouseCode}`
+      );
 
       if (args.search && args.search.trim()) {
         const q = (args.search ?? "").toString().trim().toLowerCase();
@@ -85,10 +104,14 @@ const resolvers = {
         orderBy: { date: "desc" },
       });
 
-      return snaps.map((s) => ({
-        date: s.date.toISOString().slice(0, 10),
-        stock: s.stock,
-        demand: s.demand,
+      const unique = deduplicateByKey(snaps, (s) =>
+        s.date.toISOString().slice(0, 10)
+      );
+
+      return unique.map((u) => ({
+        date: u.date.toISOString().slice(0, 10),
+        stock: u.stock,
+        demand: u.demand,
       }));
     },
   },
