@@ -1,0 +1,108 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: supplysight-db
+    environment:
+      POSTGRES_USER: supplysight
+      POSTGRES_PASSWORD: supplysight
+      POSTGRES_DB: supplysight
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supplysight -d supplysight"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: dev
+    container_name: supplysight-backend
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://supplysight:supplysight@db:5432/supplysight?schema=public
+      CHOKIDAR_USEPOLLING: true
+      # If you enforce CORS in your server code, allow the Vite origin:
+      # CORS_ORIGIN: http://localhost:5173
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "
+      npm ci &&
+      npx prisma generate &&
+      npm run prisma:push &&
+      npm run seed &&
+      npm run dev
+      "
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    container_name: supplysight-frontend
+    environment:
+      NODE_ENV: development
+      VITE_API_URL: http://localhost:4000
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - backend
+    command: >
+      sh -c "
+      npm ci &&
+      npm run dev -- --host 0.0.0.0
+      "
+    restart: unless-stopped
+
+  # -------- Production backend (build + run dist) --------
+  backend-prod:
+    profiles: ["prod"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: prod
+    container_name: supplysight-backend-prod
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://supplysight:supplysight@db:5432/supplysight?schema=public"
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # -------- Production frontend (static via Nginx) --------
+  frontend-prod:
+    profiles: [prod]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: prod
+    container_name: supplysight-frontend-prod
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend-prod
+    restart: unless-stopped
+
+volumes:
+  dbdata:
