@@ -38,9 +38,15 @@ export default function DashboardRoute() {
 
     const products: Product[] = (productsData?.products ?? []) as Product[];
     const kpiSeries = kpisData?.kpis ?? [];
-    useEffect(() => {setPage(1);}, [search, warehouse, status]);
+    const asOfKpi = kpiSeries.length ? kpiSeries[kpiSeries.length - 1] : undefined;
 
     const totals = useMemo(() => {
+        if (asOfKpi) {
+            const stock = Number(asOfKpi.stock ?? 0);
+            const demand = Number(asOfKpi.demand ?? 0);
+            const fillRate = demand > 0 ? Math.round((Math.min(stock, demand) / demand) * 100) : 0;
+            return { stock, demand, fillRate };
+        }
         if (products.length > 0){
             const stock = products.reduce((s, r) => s + Number(r.stock ?? 0), 0);
             const demand = products.reduce((s, r) => s + Number(r.demand ?? 0), 0);
@@ -56,8 +62,13 @@ export default function DashboardRoute() {
             return { stock, demand, fillRate };
         }
         return { stock: 0, demand: 0, fillRate: 0 };
-    }, [products, kpiSeries]);
-
+    }, [asOfKpi]);
+    useEffect(() => {setPage(1);}, [search, warehouse, status]);
+    useEffect(() => {
+        // products query isn't time-based yet, but this keeps things in sync UI-wise
+        productsRefetch()
+    }, [range, productsRefetch]);
+    
     const pageCount = Math.max(1, Math.ceil(products.length / pageSize));
     const paged = products.slice((page - 1) * pageSize, page * pageSize);
 
@@ -90,9 +101,9 @@ export default function DashboardRoute() {
             <TopBar range={range} setRange={setRange} />
             <div className="mx-auto max-w-7xl space-y-6 p-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <KPIBox label="Total Stock" value={totals.stock.toLocaleString()} />
-                    <KPIBox label="Total Demand" value={totals.demand.toLocaleString()} />
-                    <KPIBox label="Fill Rate" value={`${totals.fillRate}%`} sub="sum(min(stock, demand)) / sum(demand)" />
+                    <KPIBox label="Total Stock" value={totals.stock.toLocaleString()} sub={asOfKpi ? `As of ${asOfKpi.date}` : undefined} />
+                    <KPIBox label="Total Demand" value={totals.demand.toLocaleString()} sub={asOfKpi ? `As of ${asOfKpi.date}` : undefined} />
+                    <KPIBox label="Fill Rate" value={`${totals.fillRate}%`} sub={asOfKpi ? `As of ${asOfKpi.date}` : undefined} />
                 </div>
                 <TrendChart data={kpiSeries} />
 
@@ -102,7 +113,9 @@ export default function DashboardRoute() {
                     status={status} setStatus={setStatus}
                     warehouses={whOptions}
                 />
-
+                <div className="text-sm text-gray-500 px-1">
+                    {asOfKpi ? `Products (as of ${asOfKpi.date})` : "Products"}
+                </div>
                 <ProductsTable rows={paged} loading={productsLoading} onRowClick={openDrawer} />
                 <div className="px-4"><Pagination page={page} pageCount={pageCount} setPage={setPage} /></div>
             </div>
