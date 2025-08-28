@@ -11,7 +11,12 @@ type FilterProps = {
     status: string;
     setStatus: (v: string) => void;
     warehouses: Warehouse[];
-}
+};
+
+// const VALUE_COLORS = {
+//   stock: "#949892ff",
+//   demand: "#ff6b01e4",
+// };
 
 export function ProductsTable({
     rows,
@@ -28,6 +33,7 @@ export function ProductsTable({
     filters: FilterProps;
     indexOffset?:number;
 }) {
+    const COLS = 7;
     return (
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <table className="min-w-full divide-y divide-gray-200">
@@ -91,14 +97,14 @@ export function ProductsTable({
                 <tbody className="divide-y divide-gray-100">
                     {loading && (
                         <tr>
-                            <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-500">
+                            <td colSpan={COLS} className="px-4 py-6 text-center text-sm text-gray-500">
                                 Loading...
                             </td>
                         </tr>
                     )}
                     {!loading && rows.length === 0 && (
                         <tr>
-                            <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-500">
+                            <td colSpan={COLS} className="px-4 py-6 text-center text-sm text-gray-500">
                                 No Results
                             </td>
                         </tr>
@@ -112,15 +118,15 @@ export function ProductsTable({
                             <tr
                                 key={`${row.id}:${row.warehouse}`}
                                 aria-selected={isSelected || undefined}
-                                className={cx("cursor-pointer", "[&>td]:transition-colors [&>td]:duration-150", "hover:[&>td]:bg-blue-100 active:[&>td]:bg-blue-100", isSelected && "[&>td]:!bg-sky-50 ring-1 ring-sky-200/50")}
+                                className={cx("cursor-pointer", "[&>td]:transition-colors [&>td]:duration-150", "hover:[&>td]:bg-gray-300 active:[&>td]:bg-gray-100", isSelected && "[&>td]:!bg-orange-100 ring-1 ring-sky-200/50")}
                                 onClick={() => onRowClick(row)}
                             >
                                 <td className="px-4 py-3 text-sm tabular-nums text-gray-500">{displayIndex}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{row.name}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{row.sku}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{row.warehouse}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{row.stock.toLocaleString()}</td>
-                                <td className="px-4 py-3 text-sm text-gray-900">{row.demand.toLocaleString()}</td>
+                                <td className="px-4 py-3 text-sm text-neutral-400">{row.stock.toLocaleString()}</td>
+                                <td className="px-4 py-3 text-sm text-orange-400">{row.demand.toLocaleString()}</td>
                                 <td className="px-4 py-3 text-sm">
                                     <StatusPill status={s} />
                                 </td>
