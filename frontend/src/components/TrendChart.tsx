@@ -50,7 +50,7 @@ export function TrendChart({data}:{data:KPI[]}) {
     
     return (
         <div className='rounded-2xl border border-gray-200 bg-white p-4 shadow-sm'>
-            <div className='mb-2 text-sm font-medium text-gray-700'>
+            <div className='mb-2 text-lg font-medium text-gray-700'>
                 <span className='inline-flex'>
                     <span>Stock vs Demand Trend</span>
                 </span>

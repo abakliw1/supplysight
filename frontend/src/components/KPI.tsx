@@ -5,9 +5,9 @@ export function KPI({ label, value, info }: { label: string; value: string | num
     return (
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
             <div className="text-sm text-gray-500">
-                <span className="inline-flex items-center gap-1 align-middle">
-                    <span>{label}</span>
-                    {info && <Infocon text={info} className="text-slate-500" />}
+                <span className="inline-flex items-center gap-2 align-middle">
+                    <span>{label} </span>
+                    {info && <Infocon text={info} size={5} className="text-slate-500" />}
                 </span>
             </div>
             <div className="mt-1 text-2xl font-semibold">{value}</div>

@@ -7,6 +7,7 @@ export function Infocon({
     weight = 400,
     grade = 0,
     opsz = 24,
+    size,
 } : {
     text: string;
     className?: string;
@@ -16,16 +17,42 @@ export function Infocon({
     grade?: number;
     opsz?: number;
 }) {
+    const [visible, setVisible] = React.useState(false);
+    const [post, setPos] = React.useState<{left: number; top: number} | null>(null);
+    const wrapRef = React.useRef<HTMLSpanElement | null>(null);
+    
     const axes = (fill: 0 | 1) =>
         `'FILL' ${fill}, 'wght' ${weight}, 'GRAD' ${grade}, 'opsz' ${opsz}`;
+
+    const handleMove: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+        const rect = wrapRef.current?.getBoundingClientRect();
+        if(!rect) return;
+        const left = e.clientX - rect.left + 12;
+        const top = e.clientY - rect.top - 8;
+        setPos({left, top});
+    }
+
+    const show = () => setVisible(true);
+    const hide = () => setVisible(false);
+
     return (
-        <span className={cx("relative inline-flex group align-middle", className)}>
+        <span ref={wrapRef} className={cx("relative inline-flex group align-middle", className)}>
             <button
                 type="button"
                 aria-label="More Info"
-                className="inline-flex items-center justify-center rounded-full p-0 leading-none
+                onMouseEnter={show}
+                onMouseMove={handleMove}
+                onMouseLeave={hide}
+                onFocus={() => {
+                    if(wrapRef.current){
+                        const rect = wrapRef.current.getBoundingClientRect();
+                        setPos({ left: rect.width + 8, top: rect.height / 2 - 10 });
+                    }
+                    show();
+                }}
+                className="relative inline-flex h-[1em] w-[1em] items-center justify-center rounded-full p-0 leading-none
                    opacity-90 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-sky-300"
-                tabIndex={0}
+                style={{fontSize: size, width: 15, height: 15}}
             >
                 <span
                     className="material-symbols-outlined transition-opacity duration-150"
@@ -44,17 +71,21 @@ export function Infocon({
                     info
                 </span>
             </button>
-
-            <span
-                role="tooltip"
-                className="pointer-events-none absolute z-20 -left-1 mt-2 origin-top-left
-                        w-max max-w-[16rem] rounded-md bg-gray-900 px-2 py-1 text-xs text-white shadow-lg
-                        opacity-0 translate-y-1 transition-all duration-150
-                        group-hover:opacity-100 group-hover:translate-y-0
-                        group-focus-within:opacity-100 group-focus-within:translate-y-0"
-            >
-                {text}
-            </span>
+            
+            {visible && post && (
+                <span 
+                    role="tooltip"
+                    className="pointer-events-none absolute z-20 w-max max-w-[18rem] rounded-md bg-gray-900 px-2 py-1
+                     text-xs text-white shadow-lg"
+                    style={{
+                        left: post.left,
+                        top: post.top,
+                        transform: "translateY(-50%)",
+                    }}
+                >
+                    {text}
+                </span>
+            )}
         </span>
     );
 }
