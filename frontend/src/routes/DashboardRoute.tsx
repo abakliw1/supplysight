@@ -8,7 +8,6 @@ import type { KPI, Product, Warehouse } from "../types";
 import { KPI as KPIBox } from "../components/KPI";
 import { TopBar } from "../components/TopBar";
 import { TrendChart } from "../components/TrendChart";
-import { Filters } from "../components/Filters";
 import { ProductsTable } from "../components/ProductsTable";
 import { Pagination } from "../components/Pagination";
 import { Drawer } from "../components/Drawer";
@@ -75,6 +74,7 @@ export default function DashboardRoute() {
 
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selected, setSelected] = useState<null | Product>(null);
+    const selectedKey = selected ? `${selected.id}:${selected.warehouse}`:undefined;
     function openDrawer(row: Product) {
         setSelected(row);
         setDrawerOpen(true);
@@ -108,16 +108,25 @@ export default function DashboardRoute() {
                 </div>
                 <TrendChart data={kpiSeries} />
 
-                <Filters 
-                    search={search} setSearch={setSearch}
-                    warehouse={warehouse} setWarehouse={setWarehouse}
-                    status={status} setStatus={setStatus}
-                    warehouses={whOptions}
-                />
                 <div className="text-sm text-gray-500 px-1">
                     {asOfKpi ? `Products (as of ${asOfKpi.date})` : "Products"}
                 </div>
-                <ProductsTable rows={paged} loading={productsLoading} onRowClick={openDrawer} />
+                <ProductsTable 
+                    rows={paged} 
+                    loading={productsLoading} 
+                    onRowClick={openDrawer} 
+                    selectedKey={selectedKey} 
+                    filters={{
+                        search,
+                        setSearch,
+                        warehouse,
+                        setWarehouse,
+                        status,
+                        setStatus,
+                        warehouses:whOptions,
+                    }}
+                    indexOffset={(page - 1) * pageSize}
+                />
                 <div className="px-4"><Pagination page={page} pageCount={pageCount} setPage={setPage} /></div>
             </div>
 
