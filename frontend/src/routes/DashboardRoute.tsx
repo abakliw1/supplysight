@@ -102,9 +102,9 @@ export default function DashboardRoute() {
             <TopBar range={range} setRange={setRange} />
             <div className="mx-auto max-w-7xl space-y-6 p-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <KPIBox label="Total Stock" value={totals.stock.toLocaleString()} sub={asOfKpi ? `As of ${asOfKpi.date}` : undefined} />
-                    <KPIBox label="Total Demand" value={totals.demand.toLocaleString()} sub={asOfKpi ? `As of ${asOfKpi.date}` : undefined} />
-                    <KPIBox label="Fill Rate" value={`${totals.fillRate}%`} sub={asOfKpi ? `As of ${asOfKpi.date}` : undefined} />
+                    <KPIBox label="Total Stock" value={totals.stock.toLocaleString()} info={asOfKpi ? `Sum of Stocks in the Inventory as of ${asOfKpi.date}` : undefined} />
+                    <KPIBox label="Total Demand" value={totals.demand.toLocaleString()} info={asOfKpi ? `Sum of Demands by the vendors as of ${asOfKpi.date}` : undefined} />
+                    <KPIBox label="Fill Rate" value={`${totals.fillRate}%`} info={asOfKpi ? `Fill Rate As of ${asOfKpi.date} ((sum(min(stock, demand)) / sum(demand)) * 100%)` : undefined} />
                 </div>
                 <TrendChart data={kpiSeries} />
 
